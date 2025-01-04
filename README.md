@@ -1,5 +1,3 @@
-# nba-fantasy-ml
-
 # NBA Fantasy ML: Player Performance Prediction & Lineup Optimization
 
 A Python implementation of "An innovative method for accurate NBA player performance forecasting and line-up optimization in daily fantasy sports" (Papageorgiou et al., 2024).
