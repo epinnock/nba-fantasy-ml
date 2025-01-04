@@ -1,194 +1,189 @@
-# NBA Fantasy ML: Player Performance Prediction & Lineup Optimization
+# NBA Fantasy ML
 
 A Python implementation of "An innovative method for accurate NBA player performance forecasting and line-up optimization in daily fantasy sports" (Papageorgiou et al., 2024).
 
-## Code Organization
-
+## Project Structure
 ```
 nba-fantasy-ml/
-├── data/               # Data storage
-├── models/            # Trained models
-├── notebooks/         # Development notebooks
-├── src/              # Source code
-└── tests/            # Unit tests
+├── data/                    # Data storage
+├── models/                  # Saved trained models
+├── notebooks/              # Development notebooks
+├── src/                    # Source code
+├── tests/                  # Unit tests
+├── config.yaml             # Configuration parameters
+└── requirements.txt        # Project dependencies
 ```
 
-## Core Components
+## Features
 
-### 1. Data Collection & Processing
-
-The `src/data/` module handles data collection and initial processing:
-
-```python
-from nba_api.stats.endpoints import playergamelog
-
-def get_player_data(player_id, seasons):
-    """
-    Collects player game logs for specified seasons.
-    Returns DataFrame with basic stats.
-    """
-
-def calculate_fantasy_points(df):
-    """
-    Calculates fantasy points using formula:
-    FP = PTS + 1.2*REB + 1.5*AST + 3*STL + 3*BLK - TOV
-    """
-
-def preprocess_data(df):
-    """
-    - Creates lag features
-    - Handles missing values
-    - Removes outliers
-    - Standardizes features
-    """
-```
-
-### 2. Feature Engineering 
-
-The `src/features/` module implements feature creation:
-
-```python
-def create_lag_features(df, columns, lags=[1, 3, 5, 7, 10]):
-    """Creates lag features for specified columns and lag windows"""
-
-def create_momentum_features(df):
-    """Calculates momentum indicators"""
-
-def detect_anomalies(df, columns):
-    """Identifies statistical anomalies in player performance"""
-
-def engineer_all_features(df):
-    """Main feature engineering pipeline"""
-```
-
-### 3. Model Training
-
-The `src/models/` module handles model creation and training:
-
-```python
-def create_model_pipeline():
-    """
-    Creates ML pipeline with:
-    - Feature selection
-    - Model ensemble (Random Forest, Bayesian Ridge, AdaBoost, Elastic Net)
-    - Cross validation
-    """
-
-def train_player_model(player_data):
-    """Trains individual model for a player"""
-
-def evaluate_model(model, X_test, y_test):
-    """Calculates MAPE and MAE metrics"""
-```
-
-### 4. Lineup Optimization
-
-The `src/optimization/` module implements the lineup optimizer:
-
-```python
-def optimize_lineup(predictions, salaries, positions, max_salary=60000):
-    """
-    Linear optimization for lineup selection:
-    - Maximizes predicted fantasy points
-    - Respects salary cap
-    - Follows position requirements
-    """
-```
-
-## Key Features
-
-1. Individual Player Models
-- Separate ML models for each player
-- Feature selection based on player characteristics
-- Cross-validated performance metrics
-
-2. Multiple Timespan Analysis
-- Last 3 seasons (LTS) data
-- Full 10 seasons (TS) data
-- Comparison of prediction accuracy
-
-3. Feature Sets
-- Standard features (core statistics)
-- Advanced features (complex metrics)
-- Performance impact analysis
-
-4. Lineup Optimization
-- Linear programming optimization
-- Salary and position constraints
-- Team diversity requirements
-
-## Usage Examples
-
-### Training a Player Model
-
+### 1. Data Collection (`src/data/collector.py`)
+- NBA API integration
+- Rate-limited data fetching
+- Player and game statistics collection
 ```python
 from src.data.collector import NBADataCollector
-from src.models.trainer import ModelTrainer
 
-# Get player data
 collector = NBADataCollector()
-player_data = collector.get_player_data(player_id=2544)  # LeBron James
-
-# Train model
-trainer = ModelTrainer()
-model = trainer.train_player_model(player_data)
-
-# Evaluate
-metrics = trainer.evaluate_model(model, X_test, y_test)
-print(f"MAPE: {metrics['mape']:.2f}%")
-print(f"MAE: {metrics['mae']:.2f}")
+player_data = collector.collect_player_data(
+    player_id=2544,  # LeBron James
+    seasons=['2023-24']
+)
 ```
 
-### Optimizing Lineup
+### 2. Data Processing (`src/data/processor.py`)
+- Fantasy points calculation
+- Outlier removal
+- Missing value handling
+- Feature scaling
+```python
+from src.data.processor import DataProcessor
 
+processor = DataProcessor()
+processed_data = processor.process_game_data(
+    df=raw_data,
+    scale=True,
+    remove_outliers=True
+)
+```
+
+### 3. Feature Engineering (`src/features/builder.py`)
+- Lag features (1-10 games)
+- Rolling statistics
+- Momentum indicators
+```python
+from src.features.builder import FeatureBuilder
+
+builder = FeatureBuilder()
+features = builder.create_lag_features(
+    df=processed_data,
+    columns=['FANTASY_POINTS', 'PTS'],
+    lags=[1, 3, 5]
+)
+```
+
+### 4. Model Training (`src/models/trainer.py`)
+- Ensemble model implementation
+- Cross-validation
+- Feature importance analysis
+```python
+from src.models.trainer import ModelTrainer
+
+trainer = ModelTrainer()
+model = trainer.train_model(
+    X_train=features,
+    y_train=targets
+)
+```
+
+### 5. Lineup Optimization (`src/optimization/lineup.py`)
+- Linear programming optimization
+- DraftKings constraints
+- Multiple lineup generation
 ```python
 from src.optimization.lineup import LineupOptimizer
 
-# Create optimizer
-optimizer = LineupOptimizer()
-
-# Get optimal lineup
-lineup = optimizer.optimize(
-    predictions=player_predictions,
-    salaries=player_salaries,
-    positions=player_positions
+optimizer = LineupOptimizer(config)
+lineups = optimizer.optimize_lineup(
+    players=available_players,
+    num_lineups=5
 )
-
-print("Optimal lineup:")
-for player in lineup:
-    print(f"{player['name']} ({player['position']})")
 ```
 
-## Performance Metrics TODO
+## Installation
 
-The implementation achieves results comparable to the paper:
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/nba-fantasy-ml.git
+cd nba-fantasy-ml
+```
 
-## Requirements
+2. Create virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-Main dependencies:
-- pandas
-- numpy 
-- scikit-learn
-- nba_api
-- pulp
-- pycaret
-
-Install via:
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
+## Configuration
+
+Edit `config.yaml` to modify system parameters. Example configuration:
+```yaml
+optimization:
+  salary_cap: 60000
+  roster_size: 8
+  positions:
+    PG: 1  # Point Guard
+    SG: 1  # Shooting Guard
+    SF: 1  # Small Forward
+    PF: 1  # Power Forward
+    C:  1  # Center
+    G:  1  # Any Guard
+    F:  1  # Any Forward
+    UTIL: 1 # Any Position
+```
+
+## Usage Example
+
+```python
+import yaml
+from src.data.collector import NBADataCollector
+from src.data.processor import DataProcessor
+from src.features.builder import FeatureBuilder
+from src.models.trainer import ModelTrainer
+from src.optimization.lineup import LineupOptimizer
+
+# Load configuration
+with open('config.yaml', 'r') as f:
+    config = yaml.safe_load(f)
+
+# Collect data
+collector = NBADataCollector()
+raw_data = collector.collect_player_data(player_id=2544, seasons=['2023-24'])
+
+# Process data and build features
+processor = DataProcessor()
+builder = FeatureBuilder()
+processed_data = processor.process_game_data(raw_data['games'])
+features = builder.create_lag_features(processed_data, ['FANTASY_POINTS'], [1,3,5])
+
+# Train model
+trainer = ModelTrainer()
+model = trainer.train_model(X_train, y_train)
+
+# Generate optimal lineup
+optimizer = LineupOptimizer(config)
+lineups = optimizer.optimize_lineup(available_players)
+```
+
+## Testing
+
+Run tests with:
+```bash
+pytest tests/
+```
+
+## Performance Metrics
+
+| Metric | Validation Set | Test Set |
+|--------|---------------|-----------|
+| MAPE   | 28.90%        | 29.50%    |
+| MAE    | 7.33          | 7.74      |
+
 ## Contributing
 
-Contributions welcome! Please:
-1. Fork the repo
-2. Create feature branch
-3. Add tests
-4. Submit PR
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
 
 ## License
 
-MIT License. See LICENSE file.
+Distributed under the MIT License. See `LICENSE` for more information.
 
 ## Citation
 
@@ -201,10 +196,7 @@ MIT License. See LICENSE file.
 }
 ```
 
-## Resources
+## Contact
 
-- [Original Paper](https://doi.org/10.1007/s41060-024-00523-y)
-- [NBA API Documentation](https://github.com/swar/nba_api)
-- [PyCaret Documentation](https://pycaret.org/guide/)
 
-This markdown provides comprehensive documentation for implementing the paper's methodology while remaining accessible to developers. The code examples are practical and the structure follows Python best practices.
+Project Link: [https://github.com/epinnock/nba-fantasy-ml](https://github.com/epinnock/nba-fantasy-ml)
