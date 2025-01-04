@@ -166,12 +166,9 @@ Run tests with:
 pytest tests/
 ```
 
-## Performance Metrics
+## Performance Metrics TODO
+Todo
 
-| Metric | Validation Set | Test Set |
-|--------|---------------|-----------|
-| MAPE   | 28.90%        | 29.50%    |
-| MAE    | 7.33          | 7.74      |
 
 ## Contributing
 
